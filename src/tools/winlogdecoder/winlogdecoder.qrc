@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resource/winlogdecoder.ico</file>
+        <file>resource/gear.svg</file>
+    </qresource>
+</RCC>
