@@ -24,6 +24,7 @@
 #include <LogInterface.h>
 #include <QXmlStreamReader>
 #include <QDateTime>
+#include <QRegularExpression>
 
 
 typedef enum
@@ -63,6 +64,11 @@ private:
     QDateTime start;
     QDateTime stop;
     inline static volatile bool cancel = false;
+    // It's for extract the date time.
+    QRegularExpression reDataTime = QRegularExpression("(\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d\\d\\d)");
+    // It's for removing the invisible characters in the end of the string.
+    // Invisible character: outside the scope from space(0x20) to ~(0x7e)
+    QRegularExpression reBinaryEventData = QRegularExpression("([^\\040-\\176]*)$");
 
     bool ParseXml(QString xmlFileName);
 

@@ -18,7 +18,6 @@
 #include "EtlDecoder.h"
 #include <QFileInfo>
 #include <QThread>
-#include <QRegularExpression>
 
 
 EtlDecoder::EtlDecoder(QObject *parent)
@@ -85,8 +84,7 @@ bool EtlDecoder::ParseXml(QString xmlFileName)
     }
 
     // The last timeStop value is the stop time stamp
-    QRegularExpression re("(\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d\\d\\d)");
-    QRegularExpressionMatch match = re.match(timeStamp);
+    QRegularExpressionMatch match = reDataTime.match(timeStamp);
     if (match.hasMatch())
     {
         stop = QDateTime::fromString(match.captured(1), Qt::ISODateWithMs);
@@ -224,8 +222,7 @@ bool EtlDecoder::ParseSystemElement(QString& provider)
             }
             if (!start.isValid())
             {
-                QRegularExpression re("(\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d\\d\\d)");
-                QRegularExpressionMatch match = re.match(timeStamp);
+                QRegularExpressionMatch match = reDataTime.match(timeStamp);
                 if (match.hasMatch())
                 {
                     start = QDateTime::fromString(match.captured(1), Qt::ISODateWithMs);
@@ -269,10 +266,7 @@ bool EtlDecoder::ParseBinaryEventDataElement(QString& message)
     QString hex = reader.readElementText();
     QByteArray array(QByteArray::fromHex(hex.toUtf8()));
     message = array;
-    // Remove the invisible characters in the end of the string
-    // Invisible character: outside the scope from space(0x20) to ~(0x7e)
-    QRegularExpression re("([^\\040-\\176]*)$");
-    QRegularExpressionMatch match = re.match(message);
+    QRegularExpressionMatch match = reBinaryEventData.match(message);
     if (match.hasMatch())
     {
         message = message.left(message.size() - match.captured(1).size());
