@@ -18,11 +18,12 @@
 #include "EtlDecoderGui.h"
 #include "EtlDecoderCtrl.h"
 #include "ui_EtlDecoderGui.h"
+#include <thread>
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QDir>
-
 
 
 EtlDecoderGui::EtlDecoderGui(QWidget *parent) :
@@ -36,9 +37,12 @@ EtlDecoderGui::EtlDecoderGui(QWidget *parent) :
     connect(ctrl, SIGNAL(completed()), this, SLOT(handleCompleted()));
     connect(ui->toolButtonOpenFolder, SIGNAL(clicked(bool)), this, SLOT(toolButtonOpenFolder_clicked()));
     connect(ui->pushButtonRun, SIGNAL(clicked(bool)), this, SLOT(pushButtonRun_clicked()));
+    connect(ui->tableWidget, SIGNAL(cellDoubleClicked(int,int)), this, SLOT(tableWidget_cellDoubleClicked(int,int)));
     ui->splitter->setStretchFactor(0, 2);
     ui->splitter->setStretchFactor(1, 1);
+    ui->logger->Log(QString("%1 Logical Processer(s)").arg(std::thread::hardware_concurrency()), LOG_INFO);
 }
+
 
 EtlDecoderGui::~EtlDecoderGui()
 {
@@ -107,6 +111,7 @@ void EtlDecoderGui::pushButtonRun_clicked()
         ui->tableWidget->setHorizontalHeaderLabels(header);
         ui->tableWidget->setStyleSheet ("QHeaderView::section { background-color:lightblue }");
         ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
         ui->tableWidget->setRowCount(noOfLogFiles);
 
         for (int row = 0; row < noOfLogFiles; row ++)
@@ -152,9 +157,28 @@ void EtlDecoderGui::pushButtonRun_clicked()
 
         ctrl->SetMaxNoOfThreads(noOfThreads);
         ctrl->Start(&fileList, destFolder);
-        ui->pushButtonRun->setEnabled(false);
+        ui->pushButtonRun->setText("Stop");
         state = RUNNING_STATE_STARTED;
     }
+    else
+    {
+        ui->pushButtonRun->setEnabled(false);
+        ctrl->Stop();
+    }
+}
+
+
+void EtlDecoderGui::tableWidget_cellDoubleClicked(int row, int col)
+{
+    if (col != 2)
+        return;
+
+    QTableWidgetItem *item = ui->tableWidget->item(row, col);
+    if (item->text().isEmpty())
+        return;
+
+    QString txtFileName = fileList[row].path() + QString("/output/") + fileList[row].fileName() + QString(".xml.txt");
+    QDesktopServices::openUrl(QUrl::fromLocalFile(txtFileName));
 }
 
 
@@ -183,26 +207,24 @@ void EtlDecoderGui::handleStateReport(DecoderState state, QString etlFileName)
         {
         case DECODER_STATE_STARTED:
             stateString = QString("Running");
-            // brush = QBrush(QColor(0, 162, 232));
             brush = QBrush(Qt::blue);
             item->setForeground(brush);
             break;
         case DECODER_STATE_SUCCESS:
             stateString = QString("Success");
-            // brush = QBrush(QColor(34, 177, 76));
             brush = QBrush(Qt::darkGreen);
             item->setForeground(brush);
             itemOut->setText(QString("output/") + QFileInfo(etlFileName).fileName() + QString(".txt"));
+            itemOut->setToolTip("Double click to open");
             break;
         case DECODER_STATE_ERROR:
             stateString = QString("Error");
-            // brush = QBrush(QColor(237, 28, 36));
             brush = QBrush(Qt::red);
             item->setForeground(brush);
             break;
         case DECODER_STATE_CANCELED:
             stateString = QString("Canceled");
-            brush = QBrush(QColor(234, 54, 128));
+            brush = QBrush(Qt::magenta);
             item->setForeground(brush);
             break;
         default:
@@ -243,15 +265,10 @@ void EtlDecoderGui::handleTimeStampReport(QString etlFileName, QDateTime start, 
 
 void EtlDecoderGui::handleCompleted()
 {
+    ui->pushButtonRun->setText("Start");
     ui->pushButtonRun->setEnabled(true);
     state = RUNNING_STATE_STOPPED;
     QMessageBox::information(this, "Completed", "Decoding completed");
-}
-
-
-void EtlDecoderGui::ClearLog()
-{
-
 }
 
 

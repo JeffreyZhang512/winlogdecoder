@@ -32,14 +32,17 @@ EtlDecoder::~EtlDecoder()
 }
 
 
-void EtlDecoder::CancelDecoding()
+void EtlDecoder::CancelDecoding(bool c)
 {
-    cancel = true;
+    cancel = c;
 }
 
 
 bool EtlDecoder::ParseXml(QString xmlFileName)
 {
+    if (cancel)
+        return true;
+
     QFile xmlFile(xmlFileName);
     if (!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -379,9 +382,17 @@ void EtlDecoder::doDecoding(QString etlFileName, QString destFolder)
         // Then parser the xml file and generate the txt file
         if (ParseXml(xmlFileName))
         {
-            emit log(QString("Decoder: generated %1.txt successfully").arg(xmlFileName).toStdString(), LOG_OK);
-            emit stateReport(DECODER_STATE_SUCCESS, etlFileName.replace("\\", "/"));
-            emit timeStampReport(etlFileName, start, stop);
+            if (!cancel)
+            {
+                emit log(QString("Decoder: generated %1.txt successfully").arg(xmlFileName).toStdString(), LOG_OK);
+                emit stateReport(DECODER_STATE_SUCCESS, etlFileName.replace("\\", "/"));
+                emit timeStampReport(etlFileName, start, stop);
+            }
+            else
+            {
+                emit log(QString("Decoder: generating %1.txt canceled").arg(xmlFileName).toStdString(), LOG_WARNING);
+                emit stateReport(DECODER_STATE_CANCELED, etlFileName.replace("\\", "/"));
+            }
         }
         else
         {
@@ -392,8 +403,16 @@ void EtlDecoder::doDecoding(QString etlFileName, QString destFolder)
     else
     {
         // tracerpt returns failure
-        emit log(QString("Decoder: generated %1 failed").arg(xmlFileName).toStdString(), LOG_ERROR);
-        emit stateReport(DECODER_STATE_ERROR, etlFileName.replace("\\", "/"));
+        if (!cancel)
+        {
+            emit log(QString("Decoder: generated %1 failed").arg(xmlFileName).toStdString(), LOG_ERROR);
+            emit stateReport(DECODER_STATE_ERROR, etlFileName.replace("\\", "/"));
+        }
+        else
+        {
+            emit log(QString("Decoder: generating %1.txt canceled").arg(xmlFileName).toStdString(), LOG_WARNING);
+            emit stateReport(DECODER_STATE_CANCELED, etlFileName.replace("\\", "/"));
+        }
     }
 
     deleteLater();
@@ -403,7 +422,14 @@ void EtlDecoder::doDecoding(QString etlFileName, QString destFolder)
 void EtlDecoder::tracerptStarted()
 {
     tracerptMessage += QString("%1\r\n").arg(tracerptCommand);
-    emit stateReport(DECODER_STATE_STARTED, etlFileName);
+    if (!cancel)
+    {
+        emit stateReport(DECODER_STATE_STARTED, etlFileName);
+    }
+    else
+    {
+        tracerptProcess->kill();
+    }
 }
 
 

@@ -21,8 +21,10 @@
 #include <QObject>
 #include <QThread>
 #include <QFileInfo>
+#include <QDateTime>
 #include "EtlDecoder.h"
 #include "LogInterface.h"
+
 
 #define MAX_NO_OF_THREADS 32
 
@@ -37,6 +39,7 @@ typedef struct
 {
     QString etlFileName[MAX_NO_OF_THREADS];
     QThread pool[MAX_NO_OF_THREADS];
+    EtlDecoder *decoder[MAX_NO_OF_THREADS];
     ThreadState state[MAX_NO_OF_THREADS];
 }ThreadPool;
 
@@ -49,6 +52,7 @@ public:
     ~EtlDecoderCtrl();
     void SetMaxNoOfThreads(int n);
     void Start(QFileInfoList *fileList, QString destFolder);
+    void Stop();
 
 private:
     int noOfThreadUsed = 8;
@@ -57,6 +61,7 @@ private:
     int nextFileIndex = 0;
     QString destFolder;
     LogInterface *logger = nullptr;
+    QDateTime startTimeStamp;
 
 signals:
     void startDecoder(QString etlFileName, QString destFolder);

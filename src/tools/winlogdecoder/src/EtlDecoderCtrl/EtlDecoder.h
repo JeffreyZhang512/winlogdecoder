@@ -50,10 +50,10 @@ class EtlDecoder : public QObject
 public:
     explicit EtlDecoder(QObject *parent = nullptr);
     ~EtlDecoder();
-    static void CancelDecoding();
+    static void CancelDecoding(bool c);
+    QProcess * tracerptProcess = nullptr;
 
 private:
-    QProcess * tracerptProcess = nullptr;
     bool tracerptResult = true;
     QString tracerptCommand;
     QString tracerptMessage;
@@ -62,7 +62,7 @@ private:
     QString timeStamp;
     QDateTime start;
     QDateTime stop;
-    inline static bool cancel = false;
+    inline static volatile bool cancel = false;
 
     bool ParseXml(QString xmlFileName);
 

@@ -34,7 +34,7 @@ EtlDecoderCtrl::EtlDecoderCtrl(LogInterface *logger, QObject *parent)
 
 EtlDecoderCtrl::~EtlDecoderCtrl()
 {
-    EtlDecoder::CancelDecoding();
+    EtlDecoder::CancelDecoding(true);
     Sleep(1000);
     for (int i = 0; i < MAX_NO_OF_THREADS; i ++)
     {
@@ -71,6 +71,8 @@ void EtlDecoderCtrl::Start(QFileInfoList *fileList, QString destFolder)
     int noOfLogFiles = this->fileList->size();
     bool next = true;
     logger->Log("Decoding started");
+    EtlDecoder::CancelDecoding(false);
+    startTimeStamp = QDateTime::currentDateTime();
     for (int i = 0; i < noOfLogFiles; i ++)
     {
         if (false == next)
@@ -82,6 +84,7 @@ void EtlDecoderCtrl::Start(QFileInfoList *fileList, QString destFolder)
             if (threadPool.state[j] == THREAD_FREE)
             {
                 EtlDecoder *decoder = new EtlDecoder;
+                threadPool.decoder[j] = decoder;
                 decoder->moveToThread(&threadPool.pool[j]);
                 connect(this, SIGNAL(startDecoder(QString,QString)), decoder, SLOT(doDecoding(QString,QString)));
                 connect(decoder, SIGNAL(stateReport(DecoderState,QString)), this, SLOT(handleStateReport(DecoderState,QString)));
@@ -101,6 +104,19 @@ void EtlDecoderCtrl::Start(QFileInfoList *fileList, QString destFolder)
     }
 }
 
+
+void EtlDecoderCtrl::Stop()
+{
+    EtlDecoder::CancelDecoding(true);
+    // Kill the tracerpt process for each EtlDecoder object
+    for (int i = 0; i < MAX_NO_OF_THREADS; i ++)
+    {
+        if (threadPool.state[i] == THREAD_BUSY)
+        {
+            threadPool.decoder[i]->tracerptProcess->kill();
+        }
+    }
+}
 
 void EtlDecoderCtrl::handleStateReport(DecoderState state, QString etlFileName)
 {
@@ -133,13 +149,14 @@ void EtlDecoderCtrl::handleStateReport(DecoderState state, QString etlFileName)
                         }
                         if (false == busy)
                         {
-                            logger->Log("Decoding completed");
+                            logger->Log(QString("Decoding completed(%1)").arg(QString::number(static_cast<double>(startTimeStamp.msecsTo(QDateTime::currentDateTime())) / 1000.0) + QString(" secs")).toStdString());
                             emit completed();
                         }
                         return;
                     }
 
                     EtlDecoder *decoder = new EtlDecoder;
+                    threadPool.decoder[i] = decoder;
                     decoder->moveToThread(&threadPool.pool[i]);
                     connect(this, SIGNAL(startDecoder(QString,QString)), decoder, SLOT(doDecoding(QString,QString)));
                     connect(decoder, SIGNAL(stateReport(DecoderState,QString)), this, SLOT(handleStateReport(DecoderState,QString)));

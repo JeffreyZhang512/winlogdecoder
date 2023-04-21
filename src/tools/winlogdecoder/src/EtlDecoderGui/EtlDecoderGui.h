@@ -53,12 +53,12 @@ private:
     RunningState state = RUNNING_STATE_STOPPED;
     int noOfThreads = 8;
 
-    virtual void ClearLog();
-    virtual void Log(std::string log, LogType type = LOG_INFO);
+    void Log(std::string log, LogType type = LOG_INFO);
 
 private slots:
     void toolButtonOpenFolder_clicked();
     void pushButtonRun_clicked();
+    void tableWidget_cellDoubleClicked(int row, int col);
     void handleStateReport(DecoderState state, QString etlFileName);
     void handleTimeStampReport(QString etlFileName, QDateTime start, QDateTime stop);
     void handleCompleted();
