@@ -21,7 +21,7 @@
 #include <QMainWindow>
 #include <QToolButton>
 #include "Settings.h"
-#include "EtlDecoderGui.h"
+#include "DecoderGui.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -39,7 +39,7 @@ public:
 private:
     Ui::MainWindow *ui;
     QToolButton *toolButtonSettings = nullptr;
-    EtlDecoderGui *etlDecoderGui = nullptr;
+    DecoderGui *decoderGui = nullptr;
     SettingData settingData;
 
     void CreateToolBar();

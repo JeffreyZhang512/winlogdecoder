@@ -22,13 +22,17 @@ set(PROJECT_SOURCES
         Settings.ui
         winlogdecoder.qrc
         winlogdecoder.rc
-        src/EtlDecoderCtrl/EtlDecoder.h
-        src/EtlDecoderCtrl/EtlDecoder.cpp
-        src/EtlDecoderCtrl/EtlDecoderCtrl.h
-        src/EtlDecoderCtrl/EtlDecoderCtrl.cpp
-        src/EtlDecoderGui/EtlDecoderGui.h
-        src/EtlDecoderGui/EtlDecoderGui.cpp
-        src/EtlDecoderGui/EtlDecoderGui.ui
+        src/DecoderCtrl/DecoderInterface.h
+        src/DecoderCtrl/DecoderInterface.cpp
+        src/DecoderCtrl/EtlDecoder.h
+        src/DecoderCtrl/EtlDecoder.cpp
+        src/DecoderCtrl/DecoderCtrl.h
+        src/DecoderCtrl/DecoderCtrl.cpp
+        src/DecoderCtrl/EvtxDecoder.h
+        src/DecoderCtrl/EvtxDecoder.cpp
+        src/DecoderGui/DecoderGui.h
+        src/DecoderGui/DecoderGui.cpp
+        src/DecoderGui/DecoderGui.ui
         ../../common/version.h
         ../../common/about/DialogAbout.h
         ../../common/about/DialogAbout.cpp
@@ -64,8 +68,8 @@ endif()
 
 target_include_directories(WinLogDecoder PUBLIC
         .
-        src/EtlDecoderCtrl
-        src/EtlDecoderGui
+        src/DecoderCtrl
+        src/DecoderGui
         ../../common/
         ../../common/about
         ../../common/log

@@ -17,7 +17,7 @@
  
 #include <thread>
 #include "MainWindow.h"
-#include "EtlDecoderGui.h"
+#include "DecoderGui.h"
 #include "ui_MainWindow.h"
 #include "DialogAbout.h"
 #include "Settings.h"
@@ -28,8 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    etlDecoderGui = new EtlDecoderGui(this);
-    setCentralWidget(etlDecoderGui);
+    decoderGui = new DecoderGui(this);
+    setCentralWidget(decoderGui);
     this->toolButtonSettings = new QToolButton();
     CreateToolBar();
     settingData.maxThreads = std::thread::hardware_concurrency();
@@ -45,7 +45,7 @@ MainWindow::~MainWindow()
 {
     SaveSettings();
     delete toolButtonSettings;
-    delete etlDecoderGui;
+    delete decoderGui;
     delete ui;
 }
 
@@ -71,7 +71,7 @@ void MainWindow::LoadSettings()
     if (settingData.maxThreads < 1 || settingData.maxThreads > MAX_NO_OF_THREADS)
         settingData.maxThreads = 8;
 
-    etlDecoderGui->SetData(&settingData);
+    decoderGui->SetData(&settingData);
 }
 
 
@@ -88,7 +88,7 @@ void MainWindow::actionSettings_triggered()
     dlg->setFixedSize(dlg->size());
     dlg->exec();
     delete dlg;
-    etlDecoderGui->SetData(&settingData);
+    decoderGui->SetData(&settingData);
 }
 
 
