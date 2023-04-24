@@ -21,11 +21,10 @@
 
 #include <QObject>
 #include <QProcess>
-#include <LogInterface.h>
 #include <QXmlStreamReader>
 #include <QDateTime>
 #include <QRegularExpression>
-#include <DecoderInterface.h>
+#include "DecoderInterface.h"
 
 
 typedef struct
@@ -42,7 +41,6 @@ class EtlDecoder : public DecoderInterface
 public:
     explicit EtlDecoder(QObject *parent = nullptr);
     ~EtlDecoder();
-    QProcess * tracerptProcess = nullptr;
 
 private:
     bool tracerptResult = true;

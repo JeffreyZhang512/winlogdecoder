@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QProcess>
+#include <QSemaphore>
 #include <LogInterface.h>
 
 
@@ -23,6 +24,7 @@ public:
     DecoderInterface(QObject *parent = nullptr);
     static void CancelDecoding(bool c);
     QProcess * extProcess = nullptr;
+    QSemaphore readyToBeClosed = QSemaphore();
 
 signals:
     void stateReport(DecoderState state, QString etlFileName);

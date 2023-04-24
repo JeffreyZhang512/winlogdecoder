@@ -429,7 +429,7 @@ void EtlDecoder::doDecoding(QString etlFileName, QString destFolder)
         }
         else
         {
-            emit log(QString("Decoder: converted to %1.txt failed").arg(xmlFileName).toStdString(), LOG_OK);
+            emit log(QString("Decoder: generated to %1.txt failed").arg(xmlFileName).toStdString(), LOG_ERROR);
             emit stateReport(DECODER_STATE_ERROR, etlFileName.replace("\\", "/"));
         }
     }
@@ -438,7 +438,7 @@ void EtlDecoder::doDecoding(QString etlFileName, QString destFolder)
         // tracerpt returns failure
         if (!cancel)
         {
-            emit log(QString("Decoder: generated %1 failed").arg(xmlFileName).toStdString(), LOG_ERROR);
+            emit log(QString("Decoder: converted to %1 failed").arg(xmlFileName).toStdString(), LOG_ERROR);
             emit stateReport(DECODER_STATE_ERROR, etlFileName.replace("\\", "/"));
         }
         else
@@ -448,6 +448,8 @@ void EtlDecoder::doDecoding(QString etlFileName, QString destFolder)
         }
     }
 
+    // Make sure the DecoderCtrl is in the right state
+    readyToBeClosed.acquire(1);
     deleteLater();
 }
 

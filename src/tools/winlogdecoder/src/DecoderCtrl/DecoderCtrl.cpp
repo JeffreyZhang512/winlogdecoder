@@ -149,6 +149,7 @@ void DecoderCtrl::handleStateReport(DecoderState state, QString fileName)
         {
             if (state != DECODER_STATE_STARTED)
             {
+                threadPool.decoder[i]->readyToBeClosed.release(1);
                 if (noOfThreadUsed <= i)
                     threadPool.state[i] = THREAD_NOT_USED;
                 else
@@ -210,6 +211,7 @@ void DecoderCtrl::handleStateReport(DecoderState state, QString fileName)
                     threadPool.state[i] = THREAD_BUSY;
                     nextFileIndex ++;
                 }
+
             }
         }
     }
