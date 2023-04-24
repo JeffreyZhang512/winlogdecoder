@@ -15,8 +15,8 @@
  */
  
  
-#ifndef DecoderCtrl_H
-#define DecoderCtrl_H
+#ifndef DECODERCTRL_H
+#define DECODERCTRL_H
 
 #include <QObject>
 #include <QThread>
@@ -37,7 +37,7 @@ typedef enum
 
 typedef struct
 {
-    QString etlFileName[MAX_NO_OF_THREADS];
+    QString fileName[MAX_NO_OF_THREADS];
     QThread pool[MAX_NO_OF_THREADS];
     DecoderInterface *decoder[MAX_NO_OF_THREADS];
     ThreadState state[MAX_NO_OF_THREADS];
@@ -64,17 +64,17 @@ private:
     QDateTime startTimeStamp;
 
 signals:
-    void startDecoder(QString etlFileName, QString destFolder);
-    void stateReport(DecoderState state, QString etlFileName);
-    void progressReport(QString etlFileName, unsigned int percentage);
-    void timeStampReport(QString etlFileName, QDateTime start, QDateTime stop);
+    void startDecoder(QString fileName, QString destFolder);
+    void stateReport(DecoderState state, QString fileName);
+    void progressReport(QString fileName, unsigned int percentage);
+    void timeStampReport(QString fileName, QDateTime start, QDateTime stop);
     void completed();
 
 private slots:
-    void handleStateReport(DecoderState state, QString etlFileName);
-    void handleProgressReport(QString etlFileName, unsigned int percentage);
-    void handleTimeStampReport(QString etlFileName, QDateTime start, QDateTime stop);
+    void handleStateReport(DecoderState state, QString fileName);
+    void handleProgressReport(QString fileName, unsigned int percentage);
+    void handleTimeStampReport(QString fileName, QDateTime start, QDateTime stop);
     void handleLog(std::string message, LogType type);
 };
 
-#endif // DecoderCtrl_H
+#endif // DECODERCTRL_H

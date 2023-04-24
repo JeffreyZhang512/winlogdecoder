@@ -15,8 +15,8 @@
  */
  
  
-#ifndef ETLDECODERGUI_H
-#define ETLDECODERGUI_H
+#ifndef DECODERGUI_H
+#define DECODERGUI_H
 
 #include <QWidget>
 #include <QFileInfo>
@@ -59,10 +59,10 @@ private slots:
     void toolButtonOpenFolder_clicked();
     void pushButtonRun_clicked();
     void tableWidget_cellDoubleClicked(int row, int col);
-    void handleStateReport(DecoderState state, QString etlFileName);
-    void handleProgressReport(QString etlFileName, unsigned int percentage);
-    void handleTimeStampReport(QString etlFileName, QDateTime start, QDateTime stop);
+    void handleStateReport(DecoderState state, QString fileName);
+    void handleProgressReport(QString fileName, unsigned int percentage);
+    void handleTimeStampReport(QString fileName, QDateTime start, QDateTime stop);
     void handleCompleted();
 };
 
-#endif // ETLDECODERGUI_H
+#endif // DECODERGUI_H

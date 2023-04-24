@@ -17,6 +17,7 @@
  
 #include "DecoderCtrl.h"
 #include "EtlDecoder.h"
+#include "EvtxDecoder.h"
 #include "Windows.h"
 
 
@@ -84,7 +85,7 @@ void DecoderCtrl::Start(QFileInfoList *fileList, QString destFolder)
             if (threadPool.state[j] == THREAD_FREE)
             {
                 QString name = fileList->at(i).filePath();
-                threadPool.etlFileName[j] = name;
+                threadPool.fileName[j] = name;
                 if (name.right(4) == QString(".etl"))
                 {
                     EtlDecoder *decoder = new EtlDecoder;
@@ -101,7 +102,17 @@ void DecoderCtrl::Start(QFileInfoList *fileList, QString destFolder)
                 }
                 else if (name.right(5) == QString(".evtx"))
                 {
-
+                    EvtxDecoder *decoder = new EvtxDecoder;
+                    threadPool.decoder[j] = decoder;
+                    decoder->moveToThread(&threadPool.pool[j]);
+                    connect(this, SIGNAL(startDecoder(QString,QString)), decoder, SLOT(doDecoding(QString,QString)));
+                    connect(decoder, SIGNAL(stateReport(DecoderState,QString)), this, SLOT(handleStateReport(DecoderState,QString)));
+                    connect(decoder, SIGNAL(progressReport(QString,uint)), this, SLOT(handleProgressReport(QString,uint)));
+                    connect(decoder, SIGNAL(timeStampReport(QString,QDateTime,QDateTime)), this, SLOT(handleTimeStampReport(QString,QDateTime,QDateTime)));
+                    connect(decoder, SIGNAL(log(std::string,LogType)), this, SLOT(handleLog(std::string,LogType)));
+                    logger->Log(QString("Controller: send decoding request for %1").arg(name).toStdString(), LOG_INFO);
+                    emit startDecoder(name, destFolder);
+                    disconnect(this, SIGNAL(startDecoder(QString,QString)), nullptr, nullptr);
                 }
                 threadPool.state[j] = THREAD_BUSY;
                 next = true;
@@ -115,25 +126,26 @@ void DecoderCtrl::Start(QFileInfoList *fileList, QString destFolder)
 
 void DecoderCtrl::Stop()
 {
-    EtlDecoder::CancelDecoding(true);
-    // Kill the tracerpt process for each EtlDecoder object
+    DecoderInterface::CancelDecoding(true);
+    // Kill the external process for each decoder object
     for (int i = 0; i < MAX_NO_OF_THREADS; i ++)
     {
         if (threadPool.state[i] == THREAD_BUSY)
         {
-            threadPool.decoder[i]->extProcess->kill();
+            if (threadPool.decoder[i]->extProcess)
+                threadPool.decoder[i]->extProcess->kill();
         }
     }
 }
 
-void DecoderCtrl::handleStateReport(DecoderState state, QString etlFileName)
+void DecoderCtrl::handleStateReport(DecoderState state, QString fileName)
 {
     // Notify the state to the GUI
-    emit stateReport(state, etlFileName);
+    emit stateReport(state, fileName);
 
     for (int i = 0; i < MAX_NO_OF_THREADS; i ++)
     {
-        if (threadPool.etlFileName[i] == etlFileName)
+        if (threadPool.fileName[i] == fileName)
         {
             if (state != DECODER_STATE_STARTED)
             {
@@ -163,19 +175,38 @@ void DecoderCtrl::handleStateReport(DecoderState state, QString etlFileName)
                         return;
                     }
 
-                    EtlDecoder *decoder = new EtlDecoder;
-                    threadPool.decoder[i] = decoder;
-                    decoder->moveToThread(&threadPool.pool[i]);
-                    connect(this, SIGNAL(startDecoder(QString,QString)), decoder, SLOT(doDecoding(QString,QString)));
-                    connect(decoder, SIGNAL(stateReport(DecoderState,QString)), this, SLOT(handleStateReport(DecoderState,QString)));
-                    connect(decoder, SIGNAL(progressReport(QString,uint)), this, SLOT(handleProgressReport(QString,uint)));
-                    connect(decoder, SIGNAL(timeStampReport(QString,QDateTime,QDateTime)), this, SLOT(handleTimeStampReport(QString,QDateTime,QDateTime)));
-                    connect(decoder, SIGNAL(log(std::string,LogType)), this, SLOT(handleLog(std::string,LogType)));
                     QString name = fileList->at(nextFileIndex).filePath();
-                    threadPool.etlFileName[i] = name;
-                    logger->Log(QString("Controller: send decoding request %1").arg(name).toStdString(), LOG_INFO);
-                    emit startDecoder(name, destFolder);
-                    disconnect(this, SIGNAL(startDecoder(QString,QString)), nullptr, nullptr);
+                    if (name.right(4) == QString(".etl"))
+                    {
+                        EtlDecoder *decoder = new EtlDecoder;
+                        threadPool.decoder[i] = decoder;
+                        decoder->moveToThread(&threadPool.pool[i]);
+                        connect(this, SIGNAL(startDecoder(QString,QString)), decoder, SLOT(doDecoding(QString,QString)));
+                        connect(decoder, SIGNAL(stateReport(DecoderState,QString)), this, SLOT(handleStateReport(DecoderState,QString)));
+                        connect(decoder, SIGNAL(progressReport(QString,uint)), this, SLOT(handleProgressReport(QString,uint)));
+                        connect(decoder, SIGNAL(timeStampReport(QString,QDateTime,QDateTime)), this, SLOT(handleTimeStampReport(QString,QDateTime,QDateTime)));
+                        connect(decoder, SIGNAL(log(std::string,LogType)), this, SLOT(handleLog(std::string,LogType)));
+                        threadPool.fileName[i] = name;
+                        logger->Log(QString("Controller: send decoding request %1").arg(name).toStdString(), LOG_INFO);
+                        emit startDecoder(name, destFolder);
+                        disconnect(this, SIGNAL(startDecoder(QString,QString)), nullptr, nullptr);
+                    }
+                    else if (name.right(5) == QString(".evtx"))
+                    {
+                        EvtxDecoder *decoder = new EvtxDecoder;
+                        threadPool.decoder[i] = decoder;
+                        decoder->moveToThread(&threadPool.pool[i]);
+                        connect(this, SIGNAL(startDecoder(QString,QString)), decoder, SLOT(doDecoding(QString,QString)));
+                        connect(decoder, SIGNAL(stateReport(DecoderState,QString)), this, SLOT(handleStateReport(DecoderState,QString)));
+                        connect(decoder, SIGNAL(progressReport(QString,uint)), this, SLOT(handleProgressReport(QString,uint)));
+                        connect(decoder, SIGNAL(timeStampReport(QString,QDateTime,QDateTime)), this, SLOT(handleTimeStampReport(QString,QDateTime,QDateTime)));
+                        connect(decoder, SIGNAL(log(std::string,LogType)), this, SLOT(handleLog(std::string,LogType)));
+                        threadPool.fileName[i] = name;
+                        logger->Log(QString("Controller: send decoding request %1").arg(name).toStdString(), LOG_INFO);
+                        emit startDecoder(name, destFolder);
+                        disconnect(this, SIGNAL(startDecoder(QString,QString)), nullptr, nullptr);
+                    }
+
                     threadPool.state[i] = THREAD_BUSY;
                     nextFileIndex ++;
                 }
@@ -185,15 +216,15 @@ void DecoderCtrl::handleStateReport(DecoderState state, QString etlFileName)
 }
 
 
-void DecoderCtrl::handleProgressReport(QString etlFileName, unsigned int percentage)
+void DecoderCtrl::handleProgressReport(QString fileName, unsigned int percentage)
 {
-    emit progressReport(etlFileName, percentage);
+    emit progressReport(fileName, percentage);
 }
 
 
-void DecoderCtrl::handleTimeStampReport(QString etlFileName, QDateTime start, QDateTime stop)
+void DecoderCtrl::handleTimeStampReport(QString fileName, QDateTime start, QDateTime stop)
 {
-    emit timeStampReport(etlFileName, start, stop);
+    emit timeStampReport(fileName, start, stop);
 }
 
 

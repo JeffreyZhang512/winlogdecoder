@@ -96,6 +96,8 @@ void DecoderGui::pushButtonRun_clicked()
         // Get the file lists
         d.setPath(selectedFolder);
         QStringList filters;
+        // filters << "*.etl" << "*.evtx";
+        // filters << "*.evtx";
         filters << "*.etl";
         fileList = d.entryInfoList(filters, QDir::Files, QDir::Name | QDir::IgnoreCase);
         int noOfLogFiles = fileList.size();
@@ -183,13 +185,13 @@ void DecoderGui::tableWidget_cellDoubleClicked(int row, int col)
 }
 
 
-void DecoderGui::handleStateReport(DecoderState state, QString etlFileName)
+void DecoderGui::handleStateReport(DecoderState state, QString fileName)
 {
     int noOfLogFiles = fileList.size();
     int index = -1;
     for (int i = 0; i < noOfLogFiles; i ++)
     {
-        if (etlFileName == fileList[i].filePath())
+        if (fileName == fileList[i].filePath())
         {
             index = i;
             break;
@@ -215,7 +217,7 @@ void DecoderGui::handleStateReport(DecoderState state, QString etlFileName)
             stateString = QString("Success(100%)");
             brush = QBrush(Qt::darkGreen);
             item->setForeground(brush);
-            itemOut->setText(QString("output/") + QFileInfo(etlFileName).fileName() + QString(".txt"));
+            itemOut->setText(QString("output/") + QFileInfo(fileName).fileName() + QString(".txt"));
             itemOut->setToolTip("Double click to open");
             break;
         case DECODER_STATE_ERROR:
@@ -236,13 +238,13 @@ void DecoderGui::handleStateReport(DecoderState state, QString etlFileName)
 }
 
 
-void DecoderGui::handleProgressReport(QString etlFileName, unsigned int percentage)
+void DecoderGui::handleProgressReport(QString fileName, unsigned int percentage)
 {
     int noOfLogFiles = fileList.size();
     int index = -1;
     for (int i = 0; i < noOfLogFiles; i ++)
     {
-        if (etlFileName == fileList[i].filePath())
+        if (fileName == fileList[i].filePath())
         {
             index = i;
             break;
@@ -257,13 +259,13 @@ void DecoderGui::handleProgressReport(QString etlFileName, unsigned int percenta
 }
 
 
-void DecoderGui::handleTimeStampReport(QString etlFileName, QDateTime start, QDateTime stop)
+void DecoderGui::handleTimeStampReport(QString fileName, QDateTime start, QDateTime stop)
 {
     int noOfLogFiles = fileList.size();
     int index = -1;
     for (int i = 0; i < noOfLogFiles; i ++)
     {
-        if (etlFileName == fileList[i].filePath())
+        if (fileName == fileList[i].filePath())
         {
             index = i;
             break;
