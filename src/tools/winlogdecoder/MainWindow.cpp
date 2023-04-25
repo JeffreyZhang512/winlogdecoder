@@ -82,6 +82,15 @@ void MainWindow::SaveSettings()
 }
 
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (decoderGui->CloseApp())
+        event->accept();
+    else
+        event->ignore();
+}
+
+
 void MainWindow::actionSettings_triggered()
 {
     Settings *dlg = new Settings(&settingData, this);

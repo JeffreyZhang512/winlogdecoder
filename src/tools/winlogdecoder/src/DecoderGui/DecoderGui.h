@@ -20,6 +20,7 @@
 
 #include <QWidget>
 #include <QFileInfo>
+#include <QCloseEvent>
 #include "DecoderCtrl.h"
 #include "LogInterface.h"
 #include "Settings.h"
@@ -45,6 +46,7 @@ public:
     explicit DecoderGui(QWidget *parent = nullptr);
     ~DecoderGui();
     void SetData(SettingData *data);
+    bool CloseApp();
 
 private:
     DecoderCtrl *ctrl = nullptr;
@@ -52,6 +54,7 @@ private:
     Ui::DecoderGui *ui;
     RunningState state = RUNNING_STATE_STOPPED;
     int noOfThreads = 8;
+    bool laterQuit = false;
 
     void Log(std::string log, LogType type = LOG_INFO);
 

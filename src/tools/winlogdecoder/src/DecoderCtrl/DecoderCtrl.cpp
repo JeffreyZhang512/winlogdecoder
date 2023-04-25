@@ -18,7 +18,7 @@
 #include "DecoderCtrl.h"
 #include "EtlDecoder.h"
 #include "EvtxDecoder.h"
-#include "Windows.h"
+#include <Windows.h>
 
 
 DecoderCtrl::DecoderCtrl(LogInterface *logger, QObject *parent)
@@ -35,7 +35,7 @@ DecoderCtrl::DecoderCtrl(LogInterface *logger, QObject *parent)
 
 DecoderCtrl::~DecoderCtrl()
 {
-    EtlDecoder::CancelDecoding(true);
+    Stop();
     Sleep(1000);
     for (int i = 0; i < MAX_NO_OF_THREADS; i ++)
     {

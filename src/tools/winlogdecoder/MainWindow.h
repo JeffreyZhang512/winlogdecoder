@@ -46,6 +46,9 @@ private:
     void LoadSettings();
     void SaveSettings();
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 private slots:
     void actionSettings_triggered();
     void actionExit_triggered();

@@ -59,6 +59,21 @@ void DecoderGui::SetData(SettingData *data)
 }
 
 
+bool DecoderGui::CloseApp()
+{
+    if (state == RUNNING_STATE_STOPPED)
+    {
+        return true;
+    }
+    else
+    {
+        laterQuit = true;
+        pushButtonRun_clicked();
+        return false;
+    }
+}
+
+
 void DecoderGui::toolButtonOpenFolder_clicked()
 {
     QFileDialog dlg(this);
@@ -292,7 +307,10 @@ void DecoderGui::handleCompleted()
     ui->pushButtonRun->setText("Start");
     ui->pushButtonRun->setEnabled(true);
     state = RUNNING_STATE_STOPPED;
-    QMessageBox::information(this, "Completed", "Decoding completed");
+    if (laterQuit)
+        QCoreApplication::quit();
+    else
+        QMessageBox::information(this, "Completed", "Decoding completed");
 }
 
 
