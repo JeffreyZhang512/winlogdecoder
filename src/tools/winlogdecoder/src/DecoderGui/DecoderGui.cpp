@@ -24,6 +24,7 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QDir>
+#include <QProgressBar>
 
 
 DecoderGui::DecoderGui(QWidget *parent) :
@@ -220,35 +221,88 @@ void DecoderGui::handleStateReport(DecoderState state, QString fileName)
         if (item == nullptr || itemOut == nullptr)
             return;
         QString stateString;
-        QBrush brush;
+        // QBrush brush;
         switch (state)
         {
         case DECODER_STATE_STARTED:
-            stateString = QString("Running");
-            brush = QBrush(Qt::blue);
-            item->setForeground(brush);
+        {
+            // stateString = QString("Running");
+            // brush = QBrush(Qt::blue);
+            // item->setForeground(brush);
+            QProgressBar *pBar = new QProgressBar;
+            pBar->setRange(0, 100);
+            pBar->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+            pBar->setStyleSheet("QProgressBar {border: 5px solid white; border-radius: 5px;} QProgressBar::chunk {background-color: #87CEFA;}");
+            pBar->setValue(0);
+            pBar->setFormat("Running");
+            ui->tableWidget->setCellWidget(index, 1, pBar);
             break;
+        }
         case DECODER_STATE_SUCCESS:
-            stateString = QString("Success(100%)");
-            brush = QBrush(Qt::darkGreen);
-            item->setForeground(brush);
-            itemOut->setText(QString("output/") + QFileInfo(fileName).fileName() + QString(".txt"));
-            itemOut->setToolTip("Double click to open");
+        {
+            QProgressBar *pBar = reinterpret_cast<QProgressBar *>(ui->tableWidget->cellWidget(index, 1));
+            if (pBar)
+            {
+                pBar->setStyleSheet("QProgressBar {border: 5px solid white; border-radius: 5px;} QProgressBar::chunk {background-color: #98FB98;}");
+                pBar->setValue(100);
+                pBar->setFormat("Success(100%)");
+                itemOut->setText(QString("output/") + QFileInfo(fileName).fileName() + QString(".txt"));
+                itemOut->setToolTip("Double click to open");
+            }
+            else
+            {
+                stateString = QString("Success(100%)");
+                // brush = QBrush(Qt::darkGreen);
+                // item->setForeground(brush);
+                item->setText(stateString);
+            }
             break;
+        }
         case DECODER_STATE_ERROR:
-            stateString = QString("Error");
-            brush = QBrush(Qt::red);
-            item->setForeground(brush);
+        {
+            QProgressBar *pBar = reinterpret_cast<QProgressBar *>(ui->tableWidget->cellWidget(index, 1));
+            if (pBar)
+            {
+                pBar->setStyleSheet("QProgressBar {border: 5px solid white; border-radius: 5px;} QProgressBar::chunk {background-color: #FF6347;}");
+                int value = pBar->value();
+                if (value == 0)
+                    pBar->setFormat("Error");
+                else
+                    pBar->setFormat(QString("Error(%1%)").arg(value));
+            }
+            else
+            {
+                stateString = QString("Error");
+                // brush = QBrush(Qt::red);
+                // item->setForeground(brush);
+                item->setText(stateString);
+            }
             break;
+        }
         case DECODER_STATE_CANCELED:
-            stateString = QString("Canceled");
-            brush = QBrush(Qt::magenta);
-            item->setForeground(brush);
+        {
+            QProgressBar *pBar = reinterpret_cast<QProgressBar *>(ui->tableWidget->cellWidget(index, 1));
+            if (pBar)
+            {
+                pBar->setStyleSheet("QProgressBar {border: 5px solid white; border-radius: 5px;} QProgressBar::chunk {background-color: #C0C0C0;}");
+                int value = pBar->value();
+                if (value == 0)
+                    pBar->setFormat("Canceled");
+                else
+                    pBar->setFormat(QString("Canceled(%1%)").arg(value));
+            }
+            else
+            {
+                stateString = QString("Canceled");
+                // brush = QBrush(Qt::magenta);
+                // item->setForeground(brush);
+                item->setText(stateString);
+            }
             break;
+        }
         default:
             break;
         }
-        item->setText(stateString);
     }
 }
 
@@ -268,8 +322,17 @@ void DecoderGui::handleProgressReport(QString fileName, unsigned int percentage)
 
     if (index != -1)
     {
-        QTableWidgetItem *item = ui->tableWidget->item(index, 1);
-        item->setText(QString("Running(%1%)").arg(percentage));
+        QProgressBar *pBar = reinterpret_cast<QProgressBar *>(ui->tableWidget->cellWidget(index, 1));
+        if (pBar)
+        {
+            pBar->setValue(percentage);
+            pBar->setFormat(QString("Running(%1%)").arg(percentage));
+        }
+        else
+        {
+            QTableWidgetItem *item = ui->tableWidget->item(index, 1);
+            item->setText(QString("Running(%1%)").arg(percentage));
+        }
     }
 }
 
