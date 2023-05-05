@@ -1,9 +1,10 @@
 # winlogdecoder
 This is a Qt based tool to decode Windows log files(.etl and .evtx) to txt files. It is a multi-thread tool which means it can decode multiple files in parallel. The default number of threads is the logical processor(s) number of the CPU.  
 
-For the binary release, please goto:
+For the binary release, please goto:  
 https://github.com/JeffreyZhang512/winlogdecoder/releases  
-The latest release version is v0.4.0.0.
+The latest release version is v0.4.0.0.  
+To run the binary, you need install the Microsoft Visual C++ Redistributable as well. You can download it from Microsoft website.
 
 ## etl files
 The purpose of decoding etl files is to show the debug information printed from your windows drivers. The tool will be helpful if you are a Windows driver developer. The decoding process is like following:  
@@ -19,7 +20,7 @@ Notes:
 ## evtx files
 The purpose of decoding evtx files is to show the events recorded by Windows. The process is as following:
 - Call the evtx_dump tool (https://github.com/omerbenamram/evtx) to convert the evtx files to xml files.
-- The xml files converted by the evtx_dump tool can't be completely deocoded by the Qt class QXmlStreamReader, so I have to revise the format.
+- The xml files converted by the evtx_dump tool can't be completely parsed by the Qt class QXmlStreamReader, so I have to revise the format.
 - Then parse the revised xml files and extract the information to .txt files.
 
 Notes:
