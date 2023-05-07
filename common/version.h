@@ -19,7 +19,7 @@
 #define VERSION_H
 
 #ifndef APP_VERSION
-#define APP_VERSION "0.4.0.0"
+#define APP_VERSION "0.5.0.0"
 #endif
 
 #ifndef APP_ORGANIZATION_NAME

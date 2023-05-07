@@ -17,8 +17,9 @@ public:
     ~EvtxDecoder();
 
 private:
-    QRegularExpression reRecord = QRegularExpression("^Record\\s+(\\d+)\n");
+    QRegularExpression reRecords = QRegularExpression("^Records:\\s+(\\d+)$", QRegularExpression::MultilineOption);
 
+    void ParseNoOfRecords();
     bool ParseXml(QString xmlFileName);
     bool ParseEvent(QTextStream& txtOut);
 

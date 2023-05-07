@@ -13,6 +13,16 @@ EvtxDecoder::~EvtxDecoder()
 }
 
 
+void EvtxDecoder::ParseNoOfRecords()
+{
+    QRegularExpressionMatch match = reRecords.match(extProcessMessage);
+    if (match.hasMatch())
+    {
+        noOfEvents = match.captured(1).toULongLong();
+    }
+}
+
+
 bool EvtxDecoder::ParseXml(QString xmlFileName)
 {
     if (cancel)
@@ -25,47 +35,7 @@ bool EvtxDecoder::ParseXml(QString xmlFileName)
         return false;
     }
 
-    QFile xmlFileRevised(xmlFileName + QString(".xml"));
-    if (!xmlFileRevised.open(QIODevice::WriteOnly | QIODevice::Text))
-        return false;
-    QTextStream xmlRevisedOut(&xmlFileRevised);
-
-    xmlRevisedOut << QString("<Events>\n");
-    QString recordString;
-    while (!cancel && !xmlFile.atEnd())
-    {
-        QString line = xmlFile.readLine();
-        if (line == QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"))
-            continue;
-        else if (line.left(7) == QString("Record "))
-        {
-            recordString = line;
-            continue;
-        }
-        xmlRevisedOut << line;
-    }
-    if (cancel)
-        return true;
-
-    xmlRevisedOut << QString("</Events>\n");
-
-    xmlFile.close();
-    xmlFileRevised.close();
-
-    // Get noOfEvents
-    QRegularExpressionMatch matchRecord = reRecord.match(recordString);
-    if (matchRecord.hasMatch())
-    {
-        noOfEvents = matchRecord.captured(1).toULongLong();
-    }
-
-    if (!xmlFileRevised.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        emit log(QString("Decoder: Open  %1 failed").arg(xmlFileName + QString(".xml")).toStdString(), LOG_ERROR);
-        return false;
-    }
-
-    reader.setDevice(&xmlFileRevised);
+    reader.setDevice(&xmlFile);
 
     QFile txtFile(xmlFileName + QString(".txt"));
     if (!txtFile.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -111,9 +81,9 @@ bool EvtxDecoder::ParseXml(QString xmlFileName)
         emit log(QString("Decoder: failed to parse  %1, error = %2 ").arg(xmlFileName, reader.errorString()).toStdString(), LOG_ERROR);
         return false;
     }
-    if (xmlFileRevised.error() != QFile::NoError)
+    if (xmlFile.error() != QFile::NoError)
     {
-        emit log(QString("Decoder: error happens in reading %1").arg(xmlFileName + QString(".xml")).toStdString(), LOG_ERROR);
+        emit log(QString("Decoder: error happens in reading %1").arg(xmlFileName).toStdString(), LOG_ERROR);
         return false;
     }
     if (txtFile.error() != QFile::NoError)
@@ -160,7 +130,7 @@ void EvtxDecoder::doDecoding(QString evtxFileName, QString destFolder)
 {
     // long long threadId = reinterpret_cast<long long>(QThread::currentThreadId());
     this->fileName = evtxFileName;
-    QString evtxdump = "evtx_dump-v0.8.1.exe";
+    QString evtxdump = "evtx_dump-v0.8.1_revised.exe";
 
     extProcess = new QProcess(this);
     // slotes for process
@@ -174,9 +144,9 @@ void EvtxDecoder::doDecoding(QString evtxFileName, QString destFolder)
 
     QFileInfo fileInfo = QFileInfo(evtxFileName);
     QString xmlFileName = QString("%1/%2.xml").arg(destFolder, fileInfo.fileName());
-    extProcessCommand = evtxdump + QString(" -f ") + xmlFileName.replace("/", "\\") + QString(" --no-confirm-overwrite -t 1 ") + evtxFileName.replace("/", "\\");
+    extProcessCommand = evtxdump + QString(" -f ") + xmlFileName.replace("/", "\\") + QString(" --no-confirm-overwrite --dont-show-record-number ") + evtxFileName.replace("/", "\\");
     QStringList arguments;
-    arguments << "-f" << xmlFileName << "--no-confirm-overwrite" << "-t" << "1" << evtxFileName;
+    arguments << "-f" << xmlFileName << "--no-confirm-overwrite" << "--dont-show-record-number" << evtxFileName;
 
     extProcess->start(evtxdump, arguments);
     extProcess->waitForFinished(-1);
@@ -186,8 +156,8 @@ void EvtxDecoder::doDecoding(QString evtxFileName, QString destFolder)
     {
         // evtx_dump returns success
         emit log(QString("Decoder: converted to %1 successfully").arg(xmlFileName).toStdString(), LOG_OK);
-        // Parse the summary file to get the total number of events
-        // ParseSummary(summaryFileName);
+        // Get the total number of events
+        ParseNoOfRecords();
         // Then parser the xml file and generate the txt file
         if (ParseXml(xmlFileName))
         {

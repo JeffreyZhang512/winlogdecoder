@@ -3,7 +3,7 @@ This is a Qt based tool to decode Windows log files(.etl and .evtx) to txt files
 
 For the binary release, please goto:  
 https://github.com/JeffreyZhang512/winlogdecoder/releases  
-The latest release version is v0.4.0.0.  
+The latest release version is v0.5.0.0 which also includes the revised evtx_dump tool.  
 To run the binary, you need install the Microsoft Visual C++ Redistributable as well. You can download it from Microsoft website.
 
 ## etl files
@@ -20,10 +20,10 @@ Notes:
 ## evtx files
 The purpose of decoding evtx files is to show the events recorded by Windows. The process is as following:
 - Call the evtx_dump tool (https://github.com/omerbenamram/evtx) to convert the evtx files to xml files.
-- The xml files converted by the evtx_dump tool can't be completely parsed by the Qt class QXmlStreamReader, so I have to revise the format.
 - Then parse the revised xml files and extract the information to .txt files.
+- The problem is that the output of the evtx_dump tool is in XML format but not a valid xml file which can't be completely parsed by the Qt class QXmlStreamReader, so I have to change the evtx_dump tool to make the output file as a valid xml file.
 
 Notes:
 - The format of the generated txt file is like this:  
   [level]    timestamp    {guid of the provider}or[name of the provider][process id][thread id]    eventID    (Task Category)
-- Currently, all events are printed to the txt file. You can modify the class EvtxDecoder to print the eventIDs you are interested only. 
+- Currently, all events are printed to the txt file. You can modify the class EvtxDecoder to print the eventIDs you are interested only.
