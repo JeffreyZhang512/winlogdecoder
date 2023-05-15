@@ -27,3 +27,6 @@ Notes:
 - The format of the generated txt file is like this:  
   [level]    timestamp    {guid of the provider}or[name of the provider][process id][thread id]    eventID    (Task Category)
 - Currently, all events are printed to the txt file. You can modify the class EvtxDecoder to print the eventIDs you are interested only.
+
+## Raise a Question or Report a Bug
+https://github.com/JeffreyZhang512/winlogdecoder/issues
